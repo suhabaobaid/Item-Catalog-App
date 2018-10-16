@@ -1,0 +1,43 @@
+{% extends "main.html" %}
+{% block content %}
+<div class="card">
+	<div class="card-body">
+		<div class="row">
+			<div class="col-md-3" style="height: 100%">
+				<div class="row">
+					<div class="col-md-12">
+						<h2>Categories</h2>
+					</div>
+				</div>
+				<ul class="list-group">
+					{% if categories %}
+						{% for c in categories %}
+							<li class="list-group-item d-flex justify-content-between align-items-center">
+								{{ c.name }}
+								<span class="badge badge-primary badge-pill">{{ len(c.items) }}</span>
+							</li>
+						{% endfor %}
+					{% endif %}
+				</ul>
+			</div>
+			<div class="col-md-9" style="height: 100%">
+				<div class="row">
+					<div class="col-md-12">
+						<h2>Latest Items</h2>
+					</div>
+				</div>
+				<ul class="list-group">
+					{% if items and item_count > 0 %}
+						{% for item in items %}
+							<a href="{{ url_for('show_item', category=item.category.name, item=item.title) }}" class="list-group-item list-group-item-action">
+								{{ item.title }}
+								<small class="text-muted">({{ item.category.name }})</small>
+							</a>
+						{% endfor %}
+					{% endif %}
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
