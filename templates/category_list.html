@@ -1,0 +1,9 @@
+{% if categories %}
+	{% for c in categories %}
+		<a 	href="{{ url_for('show_category_items', category=c.name) }}"
+			class="list-group-item d-flex justify-content-between align-items-center">
+			{{ c.name }}
+			<span class="badge badge-primary badge-pill">{{ len(c.items) }}</span>
+		</a>
+	{% endfor %}
+{% endif %}

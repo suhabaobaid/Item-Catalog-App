@@ -1,0 +1,8 @@
+{% if items and item_count > 0 %}
+	{% for item in items %}
+		<a href="{{ url_for('show_item', category=item.category.name, item=item.title) }}" class="list-group-item list-group-item-action">
+			{{ item.title }}
+			<small class="text-muted">({{ item.category.name }})</small>
+		</a>
+	{% endfor %}
+{% endif %}

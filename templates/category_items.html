@@ -8,13 +8,17 @@
 					</div>
 				</div>
 				<ul class="list-group">
+					<a 	href="{{ url_for('show_catalog') }}"
+						class="list-group-item d-flex justify-content-between align-items-center">
+						Latest Items
+					</a>
 					{% include 'category_list.html' %}
 				</ul>
 			</div>
 			<div class="col-md-9" style="height: 100%">
 				<div class="row">
 					<div class="col-md-12">
-						<h2>Latest Items</h2>
+						<h2>{{ items_header }}</h2>
 					</div>
 				</div>
 				<ul class="list-group">

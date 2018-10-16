@@ -29,25 +29,25 @@ app = Flask(__name__)
 @app.route('/api/v1/catalog.json')
 def catalogJSON():
     categories = session.query(Category).all()
-    return jsonify({
-        "Category": [category.serializeWithItems for category in categories]
-    })
+    return jsonify(
+        Category=[category.serializeWithItems for category in categories]
+    )
 
 
 @app.route('/api/v1/categories.json')
 def categoriesJSON():
     categories = session.query(Category).all()
-    return jsonify({
-        "Category": [category.serializeWithoutItems for category in categories]
-    })
+    return jsonify(
+        Category=[category.serializeWithoutItems for category in categories]
+    )
 
 
 @app.route('/api/v1/items.json')
 def itemsJSON():
     items = session.query(Item).all()
-    return jsonify({
-        "Item": [item.serialize for item in items]
-    })
+    return jsonify(
+        Item=[item.serialize for item in items]
+    )
 
 
 # --------------------------------------
@@ -81,10 +81,16 @@ def show_catalog():
 
 @app.route('/catalog/<category>/items')
 def show_category_items(category):
-    items = session.query(Category).filter_by(name=category).all()
+    categories = session.query(Category).all()
+    items = session.query(Category).filter_by(name=category).first().items
+    item_count = len(items)
     return render_template(
-        '',
-        items=items
+        'category_items.html',
+        categories=categories,
+        items=items,
+        items_header=category,
+        item_count=item_count,
+        len=len
     )
 
 # --------------------------------------
