@@ -11,9 +11,9 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 # 1. Create users
-user1 = User(username="user1", picture="", email="", password_hash="")
-user2 = User(username="user2", picture="", email="", password_hash="")
-user3 = User(username="user3", picture="", email="", password_hash="")
+user1 = User(username="user1", picture="", email="email1", password_hash="1224sfds")
+user2 = User(username="user2", picture="", email="email2", password_hash="123dsfd")
+user3 = User(username="user3", picture="", email="email3", password_hash="2132dsf")
 session.add(user1)
 session.add(user2)
 session.add(user3)

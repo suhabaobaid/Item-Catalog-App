@@ -31,10 +31,10 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    username = Column(String(32), index=True, nullable=False)
+    username = Column(String(32), index=True, nullable=False, unique=True)
     picture = Column(String)
-    email = Column(String)
-    password_hash = Column(String(64))
+    email = Column(String(100), nullable=False, unique=True)
+    password_hash = Column(String(100), nullable=False)
 
     def hash_password(self, password):
         '''
@@ -134,6 +134,7 @@ class Category(Base):
             'id': self.id,
             'name': self.name
         }
+
 
 class Item(Base):
     '''

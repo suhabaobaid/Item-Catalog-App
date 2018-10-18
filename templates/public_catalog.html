@@ -1,25 +1,26 @@
 {% extends "main.html" %}
+{% include "flash_template.html" %}
 {% block content %}
-		<div class="row">
-			<div class="col-md-3" style="height: 100%">
-				<div class="row">
-					<div class="col-md-12">
-						<h2>Categories</h2>
-					</div>
+	<div class="row">
+		<div class="col-md-3" style="height: 100%">
+			<div class="row">
+				<div class="col-md-12">
+					<h2>Categories</h2>
 				</div>
-				<ul class="list-group">
-					{% include 'category_list.html' %}
-				</ul>
 			</div>
-			<div class="col-md-9" style="height: 100%">
-				<div class="row">
-					<div class="col-md-12">
-						<h2>Latest Items</h2>
-					</div>
-				</div>
-				<ul class="list-group">
-					{% include 'items_list.html' %}
-				</ul>
-			</div>
+			<ul class="list-group">
+				{% include 'category_list.html' %}
+			</ul>
 		</div>
+		<div class="col-md-9" style="height: 100%">
+			<div class="row">
+				<div class="col-md-12">
+					<h2>Latest Items</h2>
+				</div>
+			</div>
+			<ul class="list-group">
+				{% include "items_list.html" %}
+			</ul>
+		</div>
+	</div>
 {% endblock %}
