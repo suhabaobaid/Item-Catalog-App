@@ -31,10 +31,22 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    username = Column(String(32), index=True, nullable=False, unique=True)
+    username = Column(String(32), index=True, nullable=False)
     picture = Column(String)
     email = Column(String(100), nullable=False, unique=True)
     password_hash = Column(String(100), nullable=False)
+
+    @property
+    def serializeWithItems(self):
+        '''
+        Returns:
+            object data in a serializable format with the list of items
+        '''
+        return {
+            'id': self.id,
+            'username': self.name,
+            'email': self.email
+        }
 
     def hash_password(self, password):
         '''

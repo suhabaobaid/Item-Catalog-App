@@ -15,3 +15,12 @@ ul {
   transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 }
 
+.navbar-profile-image {
+	width: 20px;
+	height: 20px;
+}
+
+/* .navbar .navbar-toggleable-xl .navbar-nav .dropdown-menu {
+	position: absolute;
+} */
+

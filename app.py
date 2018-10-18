@@ -6,7 +6,8 @@ from sqlalchemy import create_engine, and_
 
 # Flask imports
 from flask import Flask, jsonify, request, url_for, g, make_response
-from flask import render_template, session as login_session, abort, flash
+from flask import render_template, abort, flash
+from flask import session as login_session
 from flask_httpauth import HTTPBasicAuth
 
 # authentication imports
@@ -129,7 +130,7 @@ def gconnect():
         return response
 
     # check if the logged in user is already connected
-    stored_credentials = login_session.get('credentials')
+    stored_credentials = login_session.get('access_token')
     stored_g_id = login_session.get('g_id')
     if stored_credentials is not None and g_id == stored_g_id:
         response = make_response(json.dumps(
@@ -138,7 +139,7 @@ def gconnect():
         return response
 
     # Store the access token and refresh token in the session
-    login_session['credentials'] = credentials.to_json()
+    login_session['access_token'] = access_token
     login_session['g_id'] = g_id
 
     # Get info of the user
@@ -160,14 +161,19 @@ def gconnect():
     login_session['email'] = userInfo['email']
 
     # Do database check and save for the user
+    users = session.query(User).all()
+    for user in users:
+        print 'user loop', user.username
+
+    print login_session['email']
     try:
         user = session.query(User).filter_by(email=login_session['email']).one()
         user_id = user.id
     except:
         user_id = None
+
     if not user_id:
         # create user in the db
-        print 'user'
         newUser = User(
             username=login_session['username'], email=login_session['email'],
             picture=login_session['picture'], password_hash="")
@@ -182,6 +188,7 @@ def gconnect():
     output += '<img class="userImage" src="' + login_session['picture'] + '">'
     flash('You have successfully logged in!!', 'alert alert-success')
     print 'username', login_session['username']
+    print login_session.get('username')
     return output
 
 
@@ -206,7 +213,8 @@ def show_catalog():
     items = session.query(Item).order_by(
         Item.id.desc()).limit(LATEST_ITEM_LIMIT).all()
     item_count = len(items)
-    # TODO: Add check if user is logged in
+    print login_session.get('username')
+    login_session['test'] = 'hello'
     return render_template(
         'public_catalog.html',
         categories=categories,
@@ -221,6 +229,7 @@ def show_category_items(category):
     categories = session.query(Category).all()
     items = session.query(Category).filter_by(name=category).first().items
     item_count = len(items)
+    print login_session['test']
     return render_template(
         'category_items.html',
         categories=categories,
@@ -247,5 +256,5 @@ def show_item(category, item):
 
 if __name__ == '__main__':
     app.debug = True
-    app.secret_key = SECRET_KEY
+    app.secret_key = 'SECRET_KEY'
     app.run(host='0.0.0.0', port=5000)

@@ -1,15 +1,27 @@
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark d-flex flex-row justify-content-between">
 	<!-- Navbar content -->
 	<a class="navbar-brand mb-0 h1" href="{{ url_for('show_catalog') }}">Catalog</a>
-	{% if session['username'] %}
-		<form class="form-inline">
-			<a class="btn btn-info" href="{{ url_for('show_login') }}" role="button">Logout</a>
-		</form>
-	{% else %}
 
-		<form class="form-inline">
-			<a class="btn btn-info" href="{{ url_for('show_login') }}" role="button">Login</a>
-		</form>
-	{% endif %}
+	<ul class="nav navbar-nav navbar-right">
+		{%if 'username' not in session %}
+			<a class="btn btn-primary" role="button" href="{{url_for('show_login')}}">Login</a>
+		{% else %}
+		{% if session.user_id %}
 
+			<div class="nav-item dropdown dropleft">
+				<a href="#" class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<img src="{{ session['picture']}}" alt="profile image" class="navbar-profile-image image-responsive pull-left">
+					<span class="caret"></span>
+				</a>
+
+				<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<li><a class="dropdown-item" href="#">Add Category</a></li>
+					<li><a class="dropdown-item" href="#">Add Item</a></li>
+					<li><a class="dropdown-item" href="#">Home</a></li>
+					<li><a class="dropdown-item" href="#">Logout: {{ session['username'] }}</a></li>
+				</ul>
+			</div>
+			{% endif %}
+		{% endif %}
+	</ul>
 </nav>

@@ -2,17 +2,17 @@
 {% block content %}
 <div id="result"></div>
 <!-- The user clicks the sign-in button and grants your app access to the permissions that you requested. -->
-<button id="signinButton">Sign in with Google</button>
-
-<script>
-	// Then, the callback function that you specified in the grantOfflineAccess().then() method is passed a JSON object with an authorization code.
-	// eg: {"code":"4/yU4cQZTMnnMtetyFcIWNItG32eKxxxgXXX-Z4yyJJJo.4qHskT-UtugceFc0ZRONyF4z7U4UmAI"}
-	$('#signinButton').click(function () {
-		// signInCallback defined in step 6.
-		auth2.grantOfflineAccess({ 'redirect_uri': 'postmessage' }).then(signInCallback);
-	});
-</script>
-
+<div id="signInButton">
+	<span class="g-signin"
+		data-scope="openid email"
+		data-clientid="1062836341921-mlqpt85ilo8tctdn5hehfpktgopmlbq5.apps.googleusercontent.com"
+		data-redirecturi="postmessage"
+		data-accesstype="offline"
+		data-cookiepolicy="single_host_origin"
+		data-callback="signInCallback"
+		data-approvalprompt="force">
+	</span>
+</div>
 <script>
 	// Send authorization code to the server
 	// the code is a one time code that the server can exchange for its own access token and refresh token
@@ -27,10 +27,6 @@
 			$.ajax({
 				type: 'POST',
 				url: '/gconnect',
-				// include this to protect against the CSRF attacks (as it can't be easily appended by forms, it needs consent from CORS server)
-				// headers: {
-				// 	'X-Requested-With': 'XMLHttpRequest'
-				// },
 				processData: false,
 				data: authResult['code'],
 				contentType: 'application/octet-stream; charset=utf-8',
