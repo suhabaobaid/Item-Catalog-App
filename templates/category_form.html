@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+{% block content %}
+<form action="{{ action_url }}" method='POST'>
+	<div class="form-group">
+		<label for="exampleInputEmail1">Category name</label>
+		{% if category %}
+			<input type="text" class="form-control" aria-describedby="nameHelp"
+				placeholder="Enter name" name='name'
+				value="{{ category.name }}"
+			>
+		{% else %}
+			<input type="text" class="form-control" aria-describedby="nameHelp"
+				placeholder="Enter name" name='name'
+			>
+		{% endif %}
+	</div>
+	<button type="submit" class="btn btn-primary">Submit</button>
+	<a class="btn btn-light" href="{{ url_for('show_catalog') }}">Cancel</a>
+</form>
+{% endblock %}
+

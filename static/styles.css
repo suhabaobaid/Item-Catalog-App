@@ -20,7 +20,12 @@ ul {
 	height: 20px;
 }
 
-/* .navbar .navbar-toggleable-xl .navbar-nav .dropdown-menu {
-	position: absolute;
-} */
+.list-group-item>.pull-right{
+	cursor: default;
+}
+
+.icon {
+  color: white;
+  size: 28px;
+}
 

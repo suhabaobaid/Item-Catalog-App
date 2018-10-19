@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, and_
 
 # Flask imports
 from flask import Flask, jsonify, request, url_for, g, make_response
-from flask import render_template, abort, flash
+from flask import render_template, abort, flash, redirect
 from flask import session as login_session
 from flask_httpauth import HTTPBasicAuth
 
@@ -21,6 +21,7 @@ import string
 import json
 import httplib2
 import requests
+import functools
 
 
 # Constants
@@ -43,8 +44,21 @@ app = Flask(__name__)
 
 
 # --------------------------------------
+# Login required decorator
+# --------------------------------------
+def login_required(f):
+    @functools.wraps(f)  # this is for introspection
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in login_session:
+            return redirect(url_for('show_login'))
+        return f(*args, **kwargs)
+    return wrapper
+
+# --------------------------------------
 # JSON APIs to show Catalog information
 # --------------------------------------
+
+
 @app.route('/api/v1/catalog.json')
 def catalogJSON():
     categories = session.query(Category).all()
@@ -167,7 +181,8 @@ def gconnect():
 
     print login_session['email']
     try:
-        user = session.query(User).filter_by(email=login_session['email']).one()
+        user = session.query(User).filter_by(
+            email=login_session['email']).one()
         user_id = user.id
     except:
         user_id = None
@@ -224,6 +239,69 @@ def show_catalog():
     )
 
 
+@app.route('/catalog/category/new', methods=['GET', 'POST'])
+@login_required
+def new_category():
+    if request.method == 'POST':
+        newCategory = Category(
+            name=request.form['name'],
+            user_id=login_session['user_id'])
+        session.add(newCategory)
+        session.commit()
+        flash('New category created!', 'alert alert-success')
+        return redirect(url_for('show_catalog'))
+    else:
+        return render_template('category_form.html', action_url=url_for('new_category'))
+
+
+@app.route('/catalog/category/<int:category_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_category(category_id):
+    # try:
+    category = session.query(Category).filter_by(id=category_id).one()
+    print category.name
+    if request.method == 'POST':
+        old_name = category.name
+        category.name = request.form['name']
+        session.add(category)
+        session.commit()
+        flash(
+            old_name + ' category has been changed to ' +
+            category.name, 'alert alert-success')
+        return redirect(url_for('show_catalog'))
+    else:
+        return render_template(
+            'category_form.html',
+            category=category,
+            action_url=url_for('edit_category', category_id=category_id)
+        )
+    # except:
+    #     flash('There is no such category', 'alert alert-danger')
+    #     return redirect(url_for('show_catalog'))
+
+
+@app.route(
+    '/catalog/category/<int:category_id>/delete',
+    methods=['GET', 'POST'])
+@login_required
+def delete_category(category_id):
+    try:
+        category = session.query(Category).filter_by(id=category_id).one()
+        if request.method == 'POST':
+            name = category.name
+            session.delete(category)
+            session.commit()
+            flash(
+                name + ' category has been successfully deleted with its items',
+                'alert alert-success')
+            return redirect(url_for('show_category'))
+        else:
+            return render_template('delete_category.html', category=category)
+    except:
+        flash('There is no such category')
+        return redirect(url_for('show_catalog'))
+
+
 @app.route('/catalog/<category>/items')
 def show_category_items(category):
     categories = session.query(Category).all()
@@ -238,7 +316,6 @@ def show_category_items(category):
         item_count=item_count,
         len=len
     )
-
 # --------------------------------------
 # CRUD for items
 # --------------------------------------
@@ -252,6 +329,24 @@ def show_item(category, item):
         'item.html',
         item=itemDetails
     )
+
+
+@app.route('/catalog/item/new', methods=['GET', 'POST'])
+@login_required
+def new_item():
+    if request.method == 'POST':
+        item = Item(
+            title=request.form['title'],
+            desccription=request.form['description'],
+            category_id=request.form['category_id'],
+            user_id=login_session['user_id']
+        )
+        session.add(item)
+        session.commit()
+        flash(item.name + ' has been successfully created', 'alert alert-success')
+        return redirect(url_for('show_catalog'))
+    else:
+        return render_template('item_form.html')
 
 
 if __name__ == '__main__':
