@@ -3,27 +3,27 @@
 	{% include "flash_template.html" %}
 	<div class="row">
 		<div class="col-md-4" style="height: 100%">
-			<div class="row">
-				<div class="col-md-9">
+			<div class="d-flex justify-content-between">
+				<div class="p-2">
 					<h2>Categories</h2>
 
 				</div>
 				{% if 'username' in session %}
-				<div class="col-md-3">
-					<a class="btn btn-dark" href="{{ url_for('new_category') }}" role="button">&#43;</a>
+				<div class="p-2">
+					<a class="btn btn-success" href="{{ url_for('new_category') }}" role="button">&#43;</a>
 				</div>
 				{% endif %}
 			</div>
 			{% include 'category_list.html' %}
 		</div>
 		<div class="col-md-8" style="height: 100%">
-			<div class="row">
-				<div class="col-md-9">
+			<div class="d-flex justify-content-between">
+				<div class="p-2">
 					<h2>Latest Items</h2>
 				</div>
 				{% if 'username' in session %}
-				<div class="col-md-3">
-					<a class="btn btn-dark" href="{{ url_for('new_item') }}" role="button">&#43;</a>
+				<div class="p-2">
+					<a class="btn btn-success" href="{{ url_for('new_item') }}" role="button">&#43; Add Item</a>
 				</div>
 				{% endif %}
 			</div>

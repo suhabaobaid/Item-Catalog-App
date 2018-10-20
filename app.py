@@ -239,7 +239,7 @@ def show_catalog():
     )
 
 
-@app.route('/catalog/category/new', methods=['GET', 'POST'])
+@app.route('/catalog/categories/new', methods=['GET', 'POST'])
 @login_required
 def new_category():
     if request.method == 'POST':
@@ -251,37 +251,39 @@ def new_category():
         flash('New category created!', 'alert alert-success')
         return redirect(url_for('show_catalog'))
     else:
-        return render_template('category_form.html', action_url=url_for('new_category'))
-
-
-@app.route('/catalog/category/<int:category_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_category(category_id):
-    # try:
-    category = session.query(Category).filter_by(id=category_id).one()
-    print category.name
-    if request.method == 'POST':
-        old_name = category.name
-        category.name = request.form['name']
-        session.add(category)
-        session.commit()
-        flash(
-            old_name + ' category has been changed to ' +
-            category.name, 'alert alert-success')
-        return redirect(url_for('show_catalog'))
-    else:
         return render_template(
-            'category_form.html',
-            category=category,
-            action_url=url_for('edit_category', category_id=category_id)
-        )
-    # except:
-    #     flash('There is no such category', 'alert alert-danger')
-    #     return redirect(url_for('show_catalog'))
+            'category_form.html', action_url=url_for('new_category'))
 
 
 @app.route(
-    '/catalog/category/<int:category_id>/delete',
+    '/catalog/categories/<int:category_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_category(category_id):
+    try:
+        category = session.query(Category).filter_by(id=category_id).one()
+        print category.name
+        if request.method == 'POST':
+            old_name = category.name
+            category.name = request.form['name']
+            session.add(category)
+            session.commit()
+            flash(
+                old_name + ' category has been changed to ' +
+                category.name, 'alert alert-success')
+            return redirect(url_for('show_catalog'))
+        else:
+            return render_template(
+                'category_form.html',
+                category=category,
+                action_url=url_for('edit_category', category_id=category_id)
+            )
+    except:
+        flash('There is no such category', 'alert alert-danger')
+        return redirect(url_for('show_catalog'))
+
+
+@app.route(
+    '/catalog/categories/<int:category_id>/delete',
     methods=['GET', 'POST'])
 @login_required
 def delete_category(category_id):
@@ -302,17 +304,18 @@ def delete_category(category_id):
         return redirect(url_for('show_catalog'))
 
 
-@app.route('/catalog/<category>/items')
-def show_category_items(category):
+@app.route('/catalog/categories/<int:category_id>/items')
+def show_category_items(category_id):
     categories = session.query(Category).all()
-    items = session.query(Category).filter_by(name=category).first().items
+    category = session.query(Category).filter_by(id=category_id).one()
+    items = session.query(Category).filter_by(id=category_id).first().items
     item_count = len(items)
     print login_session['test']
     return render_template(
         'category_items.html',
         categories=categories,
         items=items,
-        items_header=category,
+        items_header=category.name,
         item_count=item_count,
         len=len
     )
@@ -321,32 +324,87 @@ def show_category_items(category):
 # --------------------------------------
 
 
-@app.route('/catalog/<category>/<item>')
-def show_item(category, item):
+@app.route('/catalog/categories/<int:category_id>/items/<int:item_id>')
+def show_item(category_id, item_id):
     itemDetails = session.query(Item).join(Category).filter(
-        Item.title == item).filter(Category.name == category).first()
+        Item.id == item_id).filter(Category.id == category_id).first()
     return render_template(
         'item.html',
         item=itemDetails
     )
 
 
-@app.route('/catalog/item/new', methods=['GET', 'POST'])
+@app.route('/catalog/items/new', methods=['GET', 'POST'])
 @login_required
 def new_item():
     if request.method == 'POST':
         item = Item(
             title=request.form['title'],
-            desccription=request.form['description'],
-            category_id=request.form['category_id'],
+            description=request.form['description'],
+            category_id=request.form['category'],
             user_id=login_session['user_id']
         )
         session.add(item)
         session.commit()
-        flash(item.name + ' has been successfully created', 'alert alert-success')
+        flash(
+            item.title + ' has been successfully created',
+            'alert alert-success')
         return redirect(url_for('show_catalog'))
     else:
-        return render_template('item_form.html')
+        categories = session.query(Category).all()
+        return render_template(
+            'item_form.html',
+            categories=categories,
+            action_url=url_for('new_item'))
+
+
+@app.route('/catalog/items/<int:item_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_item(item_id):
+    try:
+        item = session.query(Item).filter_by(id=item_id).one()
+        if request.method == 'POST':
+            item.title = request.form['title']
+            item.description = request.form['description']
+            item.category_id = request.form['category']
+            session.add(item)
+            session.commit()
+            flash(
+                item.title + ' has been successfully updated',
+                'alert alert-success')
+            return redirect(url_for('show_catalog'))
+        else:
+            categories = session.query(Category).all()
+            return render_template(
+                'item_form.html',
+                item=item,
+                categories=categories,
+                action_url=url_for('edit_item', item_id=item_id)
+            )
+    except:
+        flash('There is no such item', 'alert alert-danger')
+        return redirect(url_for('show_catalog'))
+
+
+@app.route('/catalog/items/<int:item_id>/delete', methods=['GET', 'POST'])
+def delete_item(item_id):
+    try:
+        item = session.query(Item).filter_by(id=item_id).one()
+        if request.method == 'POST':
+            title = item.title
+            session.delete(item)
+            session.commit()
+            flash(
+                title + 'has been successfully deleted',
+                'alert alert-success'
+            )
+            return redirect(url_for('show_catalog'))
+        else:
+            return render_template('delete_item.html', item=item)
+    except:
+        flash('There is no such item', 'alert alert-danger')
+        return redirect(url_for('show_catalog'))
+
 
 
 if __name__ == '__main__':

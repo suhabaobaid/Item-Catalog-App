@@ -1,0 +1,36 @@
+{% extends "main.html" %}
+{% block content %}
+<form action="{{ action_url }}" method='POST'>
+	<div class="form-group">
+		{% if item %}
+		<label for="title">Item title</label>
+		<input type="text" class="form-control" placeholder="Enter title" name='title' value="{{ item.title }}">
+
+		<label for="description">Item description</label>
+		<input type="text" class="form-control" placeholder="Enter description" name='description' value="{{ item.description }}">
+
+		{% else %}
+		<label for="exampleInputEmail1">Item title</label>
+		<input type="text" class="form-control" placeholder="Enter title" name='title'>
+
+		<label for="description">Item description</label>
+		<input type="text" class="form-control" placeholder="Enter description" name='description'>
+
+		{% endif %}
+		<div class="form-group">
+			<label for="Category">Category:</label>
+			<select class="form-control" name="category">
+				{% for c in categories %}
+				{% if item and item.category_id == c.id %}
+				<option id="{{c.id}}" value="{{c.id}}" selected>{{c.name}}</option>
+				{% else %}
+				<option id="{{c.id}}" value="{{c.id}}">{{c.name}}</option>
+				{% endif %}
+				{% endfor %}
+			</select>
+		</div>
+	</div>
+	<button type="submit" class="btn btn-primary">Submit</button>
+	<a class="btn btn-light" href="{{ url_for('show_catalog') }}">Cancel</a>
+</form>
+{% endblock %}
