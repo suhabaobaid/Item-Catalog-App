@@ -387,6 +387,7 @@ def edit_item(item_id):
 
 
 @app.route('/catalog/items/<int:item_id>/delete', methods=['GET', 'POST'])
+@login_required
 def delete_item(item_id):
     try:
         item = session.query(Item).filter_by(id=item_id).one()
@@ -404,7 +405,6 @@ def delete_item(item_id):
     except:
         flash('There is no such item', 'alert alert-danger')
         return redirect(url_for('show_catalog'))
-
 
 
 if __name__ == '__main__':
