@@ -2,16 +2,14 @@
 {% block content %}
 <div id="result"></div>
 <!-- The user clicks the sign-in button and grants your app access to the permissions that you requested. -->
-<div id="signInButton">
-	<span class="g-signin"
-		data-scope="openid email"
-		data-clientid="1062836341921-mlqpt85ilo8tctdn5hehfpktgopmlbq5.apps.googleusercontent.com"
-		data-redirecturi="postmessage"
-		data-accesstype="offline"
-		data-cookiepolicy="single_host_origin"
-		data-callback="signInCallback"
-		data-approvalprompt="force">
-	</span>
+<div class="d-flex flex-column align-items-center">
+	<h1>Please login</h1>
+	<div id="signInButton">
+		<span class="g-signin" data-scope="openid email" data-clientid="1062836341921-mlqpt85ilo8tctdn5hehfpktgopmlbq5.apps.googleusercontent.com"
+		 data-redirecturi="postmessage" data-accesstype="offline" data-cookiepolicy="single_host_origin" data-callback="signInCallback"
+		 data-approvalprompt="force">
+		</span>
+	</div>
 </div>
 <script>
 	// Send authorization code to the server
@@ -30,7 +28,7 @@
 				processData: false,
 				data: authResult['code'],
 				contentType: 'application/octet-stream; charset=utf-8',
-				success: function(result) {
+				success: function (result) {
 					// Handle or verify the server response if necessary.
 					if (result) {
 						$('#result').html('Login Successful!</br>' + result + '</br>Redirecting...')

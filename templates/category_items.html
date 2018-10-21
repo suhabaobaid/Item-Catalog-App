@@ -1,29 +1,35 @@
 {% extends "main.html" %}
 {% block content %}
-		<div class="row">
-			<div class="col-md-3" style="height: 100%">
-				<div class="row">
-					<div class="col-md-12">
-						<h2>Categories</h2>
-					</div>
+	{% include "flash_template.html" %}
+	<div class="row">
+		<div class="col-md-4" style="height: 100%">
+			<div class="d-flex justify-content-between">
+				<div class="p-2">
+					<h2>Categories</h2>
+
 				</div>
-				<ul class="list-group">
-					<a 	href="{{ url_for('show_catalog') }}"
-						class="list-group-item d-flex justify-content-between align-items-center">
-						Latest Items
-					</a>
-					{% include 'category_list.html' %}
-				</ul>
-			</div>
-			<div class="col-md-9" style="height: 100%">
-				<div class="row">
-					<div class="col-md-12">
-						<h2>{{ items_header }}</h2>
-					</div>
+				{% if 'username' in session %}
+				<div class="p-2">
+					<a class="btn btn-success" href="{{ url_for('new_category') }}" role="button">&#43;</a>
 				</div>
-				<ul class="list-group">
-					{% include 'items_list.html' %}
-				</ul>
+				{% endif %}
 			</div>
+			{% include 'category_list.html' %}
 		</div>
+		<div class="col-md-8" style="height: 100%">
+			<div class="d-flex justify-content-between">
+				<div class="p-2">
+					<h2>{{ items_header }}</h2>
+				</div>
+				{% if 'username' in session %}
+				<div class="p-2">
+					<a class="btn btn-success" href="{{ url_for('new_item') }}" role="button">&#43; Add Item</a>
+				</div>
+				{% endif %}
+			</div>
+			<ul class="list-group">
+				{% include "items_list.html" %}
+			</ul>
+		</div>
+	</div>
 {% endblock %}

@@ -174,12 +174,12 @@ def gconnect():
     login_session['picture'] = userInfo['picture']
     login_session['email'] = userInfo['email']
 
-    # Do database check and save for the user
-    users = session.query(User).all()
-    for user in users:
-        print 'user loop', user.username
+    # save the credentials
+    # ACTION ITEM: store the credentials in a persistent db in production
+    # login_session['credentials'] = credentials_to_dict(credentials)
+    # print login_session['credentials']
 
-    print login_session['email']
+    # Do database check and save the user
     try:
         user = session.query(User).filter_by(
             email=login_session['email']).one()
@@ -189,13 +189,14 @@ def gconnect():
 
     if not user_id:
         # create user in the db
-        newUser = User(
+        user = User(
             username=login_session['username'], email=login_session['email'],
             picture=login_session['picture'], password_hash="")
-        session.add(newUser)
+        session.add(user)
         session.commit()
-    # save the user_id in the login session
-    login_session['user_id'] = user_id
+
+    # save the user.id in the login session
+    login_session['user_id'] = user.id
 
     # show output to the screen
     output = ''
@@ -207,20 +208,65 @@ def gconnect():
     return output
 
 
-# @app.route('gdisconnect')
-# def gdisconnect():
-    # # get credentials from the login_session
-    # credentials = login_session['credentials']
-    # # revoke a token by sending an HTTP GET request
-    # requests.post(
-    #     'https://accounts.google.com/o/oauth2/revoke',
-    #     params={'token': credentials.access_token},
-    #     headers={'content-type': 'application/x-www-form-urlencoded'}
-    # )
+@app.route('/logout')
+def logout():
+    print login_session
+    if 'provider' in login_session:
+        if login_session['provider'] == 'google':
+            gdisconnect()
+
+        del login_session['provider']
+        flash(
+            'You have successfully logged out',
+            'alert alert-success')
+        return redirect(url_for('show_catalog'))
+
+
+
+
+def gdisconnect():
+    # get access_token from the login_session
+    access_token = login_session['access_token']
+    # only logout authenticated users
+    if access_token is None:
+        response = make_response(
+            json.dumps('No user is connected'),
+            401
+        )
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    # revoke a token by sending an HTTP GET request
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token  # noqa
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+
+    # reset login_session if  successful revoke
+    if result['status'] == '200':
+        del login_session['access_token']
+        del login_session['g_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        del login_session['user_id']
+
+        response = make_response(json.dumps('Successfully disconnected'), 200)
+        response.headers['Content-Type'] = 'application/json'
+        return response
+
+    else:
+        # invalid token
+        response = make_response(
+            json.dumps('Invalid token for the user, failed to revoke token'),
+            400
+        )
+        return response
 
 # --------------------------------------
 # CRUD for categories
 # --------------------------------------
+
+
 @app.route('/')
 @app.route('/catalog')
 def show_catalog():
@@ -319,6 +365,8 @@ def show_category_items(category_id):
         item_count=item_count,
         len=len
     )
+
+
 # --------------------------------------
 # CRUD for items
 # --------------------------------------
@@ -405,6 +453,19 @@ def delete_item(item_id):
     except:
         flash('There is no such item', 'alert alert-danger')
         return redirect(url_for('show_catalog'))
+
+# --------------------------------------
+# Helper function
+# --------------------------------------
+
+
+def credentials_to_dict(credentials):
+    return {'token': credentials.token,
+            'refresh_token': credentials.refresh_token,
+            'token_uri': credentials.token_uri,
+            'client_id': credentials.client_id,
+            'client_secret': credentials.client_secret,
+            'scopes': credentials.scopes}
 
 
 if __name__ == '__main__':
