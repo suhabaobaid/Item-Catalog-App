@@ -229,16 +229,16 @@ def gconnect():
     output = ''
     output += '<h1> Welcome ' + login_session['username'] + '!</h1>'
     output += '<img class="userImage" src="' + login_session['picture'] + '">'
-    flash('You have successfully logged in!!', 'alert alert-success')
+    construct_flash('You have successfully logged in!!', 'success')
     return output
 
 
 @app.route('/logout')
 def logout():
     '''
-    Endpoint for logout, generalized logout according to provider in login_session
+    Endpoint for logout, generalized logout according to provider in
+    login_session
     '''
-    print login_session
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
@@ -252,7 +252,8 @@ def logout():
 
 def gdisconnect():
     '''
-    Function to check and revoke google's user token and resets the login_session
+    Function to check and revoke google's user token and resets the
+    login_session
     '''
     # get access_token from the login_session
     access_token = login_session['access_token']
@@ -308,8 +309,6 @@ def show_catalog():
     items = session.query(Item).order_by(
         Item.id.desc()).limit(LATEST_ITEM_LIMIT).all()
     item_count = len(items)
-    print login_session.get('username')
-    login_session['test'] = 'hello'
     return render_template(
         'public_catalog.html',
         categories=categories,
@@ -331,9 +330,8 @@ def new_category():
         newCategory = Category(
             name=request.form['name'],
             user_id=login_session['user_id'])
-        session.add(newCategory)
-        session.commit()
-        flash('New category created!', 'alert alert-success')
+        add_to_db(new_category)
+        construct_flash('New category created!', 'success')
         return redirect(url_for('show_catalog'))
     else:
         return render_template(
@@ -355,11 +353,10 @@ def edit_category(category_id):
         if request.method == 'POST':
             old_name = category.name
             category.name = request.form['name']
-            session.add(category)
-            session.commit()
-            flash(
+            add_to_db(category)
+            construct_flash(
                 old_name + ' category has been changed to ' +
-                category.name, 'alert alert-success')
+                category.name, 'success')
             return redirect(url_for('show_catalog'))
         else:
             return render_template(
@@ -368,7 +365,7 @@ def edit_category(category_id):
                 action_url=url_for('edit_category', category_id=category_id)
             )
     except:
-        flash('There is no such category', 'alert alert-danger')
+        construct_flash('There is no such category', 'danger')
         return redirect(url_for('show_catalog'))
 
 
@@ -388,11 +385,10 @@ def delete_category(category_id):
         category = session.query(Category).filter_by(id=category_id).one()
         if request.method == 'POST':
             name = category.name
-            session.delete(category)
-            session.commit()
-            flash(
+            delete_from_db(category)
+            construct_flash(
                 name + ' category has been successfully deleted with its items',
-                'alert alert-success')
+                'success')
             return redirect(url_for('show_category'))
         else:
             return render_template('delete_category.html', category=category)
@@ -459,11 +455,10 @@ def new_item():
             category_id=request.form['category'],
             user_id=login_session['user_id']
         )
-        session.add(item)
-        session.commit()
-        flash(
+        add_to_db(item)
+        construct_flash(
             item.title + ' has been successfully created',
-            'alert alert-success')
+            'success')
         return redirect(url_for('show_catalog'))
     else:
         categories = session.query(Category).all()
@@ -487,11 +482,10 @@ def edit_item(item_id):
             item.title = request.form['title']
             item.description = request.form['description']
             item.category_id = request.form['category']
-            session.add(item)
-            session.commit()
-            flash(
+            add_to_db(item)
+            construct_flash(
                 item.title + ' has been successfully updated',
-                'alert alert-success')
+                'success')
             return redirect(url_for('show_catalog'))
         else:
             categories = session.query(Category).all()
@@ -502,7 +496,7 @@ def edit_item(item_id):
                 action_url=url_for('edit_item', item_id=item_id)
             )
     except:
-        flash('There is no such item', 'alert alert-danger')
+        construct_flash('There is no such item', 'danger')
         return redirect(url_for('show_catalog'))
 
 
@@ -518,17 +512,16 @@ def delete_item(item_id):
         item = session.query(Item).filter_by(id=item_id).one()
         if request.method == 'POST':
             title = item.title
-            session.delete(item)
-            session.commit()
-            flash(
+            delete_from_db(item)
+            construct_flash(
                 title + 'has been successfully deleted',
-                'alert alert-success'
+                'success'
             )
             return redirect(url_for('show_catalog'))
         else:
             return render_template('delete_item.html', item=item)
     except:
-        flash('There is no such item', 'alert alert-danger')
+        construct_flash('There is no such item', 'danger')
         return redirect(url_for('show_catalog'))
 
 
@@ -550,6 +543,37 @@ def credentials_to_dict(credentials):
             'client_id': credentials.client_id,
             'client_secret': credentials.client_secret,
             'scopes': credentials.scopes}
+
+
+# FIXME: should add a return??
+def construct_flash(message, flash_type):
+    '''
+    Creates a flash
+    Args:
+        message (string): flash message
+        flash_type (string): ['danger', 'warning', 'success'] type of flash
+    '''
+    flash(message, 'alert alert-%s' % flash_type)
+
+
+def add_to_db(obj):
+    '''
+    Adds object to the db and commits, for creation and editing of object
+    Args:
+        obj (model object)
+    '''
+    session.add(obj)
+    session.commit()
+
+
+def delete_from_db(obj):
+    '''
+    Delete object to the db and commits
+    Args:
+        obj (model object)
+    '''
+    session.delte(obj)
+    session.commit()
 
 
 if __name__ == '__main__':
