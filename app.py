@@ -8,7 +8,6 @@ from sqlalchemy import create_engine, and_
 from flask import Flask, jsonify, request, url_for, g, make_response
 from flask import render_template, abort, flash, redirect
 from flask import session as login_session
-from flask_httpauth import HTTPBasicAuth
 
 # authentication imports
 import google.oauth2.credentials
@@ -46,7 +45,11 @@ app = Flask(__name__)
 # --------------------------------------
 # Login required decorator
 # --------------------------------------
+
 def login_required(f):
+    '''
+    decorator to restrict access to pages if user not logged in
+    '''
     @functools.wraps(f)  # this is for introspection
     def wrapper(*args, **kwargs):
         if 'user_id' not in login_session:
@@ -54,13 +57,17 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
+
 # --------------------------------------
 # JSON APIs to show Catalog information
 # --------------------------------------
 
-
 @app.route('/api/v1/catalog.json')
 def catalogJSON():
+    '''
+    Returns:
+        catalog (json): whole catalog including categories and items
+    '''
     categories = session.query(Category).all()
     return jsonify(
         Category=[category.serializeWithItems for category in categories]
@@ -69,6 +76,10 @@ def catalogJSON():
 
 @app.route('/api/v1/categories.json')
 def categoriesJSON():
+    '''
+    Returns:
+        categories (json): list of categories
+    '''
     categories = session.query(Category).all()
     return jsonify(
         Category=[category.serializeWithoutItems for category in categories]
@@ -77,6 +88,10 @@ def categoriesJSON():
 
 @app.route('/api/v1/items.json')
 def itemsJSON():
+    '''
+    Returns:
+        items (json): list of items
+    '''
     items = session.query(Item).all()
     return jsonify(
         Item=[item.serialize for item in items]
@@ -86,13 +101,25 @@ def itemsJSON():
 # --------------------------------------
 # Authentication routes
 # --------------------------------------
+
 @app.route('/login')
 def show_login():
+    '''
+    Returns:
+        login (html)
+    '''
     return render_template('login.html')
 
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    '''
+    End point called after the client is authenticated and user gives permission to the app
+    Args:
+        auth_code -> from request sent by google OAuth
+    Returns:
+        output (html): for successful login otherwise sends an error response to client
+    '''
     # check the X-Requested-With header to prevent the CSRF attacks
     if not request.headers.get('X-Requested-With'):
         abort(403)
@@ -203,13 +230,14 @@ def gconnect():
     output += '<h1> Welcome ' + login_session['username'] + '!</h1>'
     output += '<img class="userImage" src="' + login_session['picture'] + '">'
     flash('You have successfully logged in!!', 'alert alert-success')
-    print 'username', login_session['username']
-    print login_session.get('username')
     return output
 
 
 @app.route('/logout')
 def logout():
+    '''
+    Endpoint for logout, generalized logout according to provider in login_session
+    '''
     print login_session
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
@@ -222,9 +250,10 @@ def logout():
         return redirect(url_for('show_catalog'))
 
 
-
-
 def gdisconnect():
+    '''
+    Function to check and revoke google's user token and resets the login_session
+    '''
     # get access_token from the login_session
     access_token = login_session['access_token']
     # only logout authenticated users
@@ -262,14 +291,19 @@ def gdisconnect():
         )
         return response
 
+
 # --------------------------------------
 # CRUD for categories
 # --------------------------------------
 
-
 @app.route('/')
 @app.route('/catalog')
 def show_catalog():
+    '''
+    Allows user to view the catalog page, certain (add,edit,delete) available for authenicated users
+    Returns:
+        catalog (html): page with all the categories and latest items
+    '''
     categories = session.query(Category).all()
     items = session.query(Item).order_by(
         Item.id.desc()).limit(LATEST_ITEM_LIMIT).all()
@@ -288,6 +322,11 @@ def show_catalog():
 @app.route('/catalog/categories/new', methods=['GET', 'POST'])
 @login_required
 def new_category():
+    '''
+    Allows authenticated users to add a new category
+    Returns:
+        category_form (html): form to fill for the category
+    '''
     if request.method == 'POST':
         newCategory = Category(
             name=request.form['name'],
@@ -305,6 +344,11 @@ def new_category():
     '/catalog/categories/<int:category_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_category(category_id):
+    '''
+    Allows authenticated users to edit a category they own
+    Returns:
+        category_form (html): form to edit the category
+    '''
     try:
         category = session.query(Category).filter_by(id=category_id).one()
         print category.name
@@ -333,6 +377,13 @@ def edit_category(category_id):
     methods=['GET', 'POST'])
 @login_required
 def delete_category(category_id):
+    '''
+    Allows authenticated users to delete a category they own and its items
+    Note:
+        This will cause the deletion of items created by other users if exist
+    Returns:
+        delete_category (html): template for confirmation of deletion
+    '''
     try:
         category = session.query(Category).filter_by(id=category_id).one()
         if request.method == 'POST':
@@ -352,11 +403,16 @@ def delete_category(category_id):
 
 @app.route('/catalog/categories/<int:category_id>/items')
 def show_category_items(category_id):
+    '''
+    Allows public users to view the items that belong to the selected category
+    Returns:
+        category_items (html): template showing the list of categories and the items in
+        in the selected category
+    '''
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
     items = session.query(Category).filter_by(id=category_id).first().items
     item_count = len(items)
-    print login_session['test']
     return render_template(
         'category_items.html',
         categories=categories,
@@ -371,9 +427,15 @@ def show_category_items(category_id):
 # CRUD for items
 # --------------------------------------
 
-
 @app.route('/catalog/categories/<int:category_id>/items/<int:item_id>')
 def show_item(category_id, item_id):
+    '''
+    Allows public users to view the details of an item,
+    authenticated owner users get the option to edit and delete
+    Returns:
+        item (html): template to display the details of the item (title,
+        description and category)
+    '''
     itemDetails = session.query(Item).join(Category).filter(
         Item.id == item_id).filter(Category.id == category_id).first()
     return render_template(
@@ -385,6 +447,11 @@ def show_item(category_id, item_id):
 @app.route('/catalog/items/new', methods=['GET', 'POST'])
 @login_required
 def new_item():
+    '''
+    Allows authenticates users to create a new item
+    Returns:
+        item_form (html): form to add item's details
+    '''
     if request.method == 'POST':
         item = Item(
             title=request.form['title'],
@@ -409,6 +476,11 @@ def new_item():
 @app.route('/catalog/items/<int:item_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_item(item_id):
+    '''
+    Allows authenticates users to edited an item they own
+    Returns:
+        item_form (html): form to edit item's details
+    '''
     try:
         item = session.query(Item).filter_by(id=item_id).one()
         if request.method == 'POST':
@@ -437,6 +509,11 @@ def edit_item(item_id):
 @app.route('/catalog/items/<int:item_id>/delete', methods=['GET', 'POST'])
 @login_required
 def delete_item(item_id):
+    '''
+    Allows authenticates users to delete an item they own
+    Returns:
+        item_form (html): template to confirm deletion of an item
+    '''
     try:
         item = session.query(Item).filter_by(id=item_id).one()
         if request.method == 'POST':
@@ -454,12 +531,19 @@ def delete_item(item_id):
         flash('There is no such item', 'alert alert-danger')
         return redirect(url_for('show_catalog'))
 
+
 # --------------------------------------
 # Helper function
 # --------------------------------------
 
-
 def credentials_to_dict(credentials):
+    '''
+    trasnforms credentials object to a dictionary
+    Args:
+        credentials (obj): provided by OAuth flow
+    Returns:
+        credentials (dict)
+    '''
     return {'token': credentials.token,
             'refresh_token': credentials.refresh_token,
             'token_uri': credentials.token_uri,
@@ -470,5 +554,5 @@ def credentials_to_dict(credentials):
 
 if __name__ == '__main__':
     app.debug = True
-    app.secret_key = 'SECRET_KEY'
+    app.secret_key = SECRET_KEY
     app.run(host='0.0.0.0', port=5000)
