@@ -55,7 +55,7 @@ Third-party auth with Google is used in this project. Technologies used to build
 <img src="assets/Catalog.png" width="800" height="200">
 
 `/` and `/catalog` - logged in
-<img src="assets/CatalogLoggedIn.png" width="800" height="200">
+<img src="assets/CatalogloggedIn.png" width="800" height="200">
 
 `/catalog/categories/new`
 
