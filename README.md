@@ -29,8 +29,8 @@ Third-party auth with Google is used in this project. Technologies used to build
 - Download or clone [fullStack repo](https://github.com/udacity/fullstack-nanodegree-vm "fullStack repo")
 - Clone this repo into the 'catalog/' directory found in the vagrant folder.
 - Open the terminal and head to the vagrant directry in fullstack-nanodegree-vm folder.
-- Launch the virtual machine (See below for details of using VM) by running `vagrant up`, then login the VM by running `vagrant ssh`
-- In the VM, change directory to `catalog` and run `sudo pip install -r requirements` to install dependecies
+- Launch the virtual machine (See below for details of using VM) by running `vagrant up`, then login into the VM by running `vagrant ssh`
+- In the VM, change directory to `catalog` and run `sudo pip install -r requirements.txt` to install dependecies
 - Run the app using `python app.py`
 - In your browser, go to `http://localhost:5000/catalog` to access the application
 
