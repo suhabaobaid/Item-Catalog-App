@@ -2,7 +2,7 @@
 {% block content %}
 <div id="result"></div>
 <!-- The user clicks the sign-in button and grants your app access to the permissions that you requested. -->
-<div class="d-flex flex-column align-items-center">
+<div class="d-flex flex-column align-items-center" id="login">
 	<h1>Please login</h1>
 	<div id="signInButton">
 		<span class="g-signin" data-scope="openid email" data-clientid="1062836341921-mlqpt85ilo8tctdn5hehfpktgopmlbq5.apps.googleusercontent.com"
@@ -20,7 +20,7 @@
 		console.log(authResult)
 		if (authResult['code']) {
 			// Hide the sign-in button now that the user is authorized
-			$('#signinButton').attr('style', 'display: none');
+			$('#login').hide();
 			// Send the code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
 			$.ajax({
 				type: 'POST',

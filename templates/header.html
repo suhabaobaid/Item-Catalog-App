@@ -18,7 +18,7 @@
 					<li><a class="dropdown-item" href="{{ url_for('new_category') }}">Add Category</a></li>
 					<li><a class="dropdown-item" href="{{ url_for('new_item') }}">Add Item</a></li>
 					<li><a class="dropdown-item" href="{{ url_for('show_catalog') }}">Home</a></li>
-					<li><a class="dropdown-item" href="#">Logout: {{ session['username'] }}</a></li>
+					<li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout: {{ session['username'] }}</a></li>
 				</ul>
 			</div>
 			{% endif %}

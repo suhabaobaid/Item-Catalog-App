@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 # sqlalchemy imports
 from sqlalchemy import Column, create_engine, ForeignKey
 from sqlalchemy import Integer, String, Text

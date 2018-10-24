@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 # Database imports
 from models import Base, User, Category, Item
 from sqlalchemy.ext.declarative import declarative_base
@@ -10,8 +12,6 @@ from flask import render_template, abort, flash, redirect
 from flask import session as login_session
 
 # authentication imports
-import google.oauth2.credentials
-import google_auth_oauthlib.flow
 from oauth2client.client import FlowExchangeError, flow_from_clientsecrets
 
 # other imports
@@ -327,7 +327,7 @@ def new_category():
         category_form (html): form to fill for the category
     '''
     if request.method == 'POST':
-        newCategory = Category(
+        new_category = Category(
             name=request.form['name'],
             user_id=login_session['user_id'])
         add_to_db(new_category)
@@ -572,7 +572,7 @@ def delete_from_db(obj):
     Args:
         obj (model object)
     '''
-    session.delte(obj)
+    session.delete(obj)
     session.commit()
 
 
