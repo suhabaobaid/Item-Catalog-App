@@ -34,7 +34,8 @@ SCOPES = ['profile', 'email']
 
 # Initializations
 # Connect to the database and create a session
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine(
+    'sqlite:///catalog.db', connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -114,11 +115,13 @@ def show_login():
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     '''
-    End point called after the client is authenticated and user gives permission to the app
+    End point called after the client is authenticated and user gives
+    permission to the app
     Args:
         auth_code -> from request sent by google OAuth
     Returns:
-        output (html): for successful login otherwise sends an error response to client
+        output (html): for successful login otherwise sends an error response
+        to client
     '''
     # check the X-Requested-With header to prevent the CSRF attacks
     if not request.headers.get('X-Requested-With'):
@@ -301,7 +304,8 @@ def gdisconnect():
 @app.route('/catalog')
 def show_catalog():
     '''
-    Allows user to view the catalog page, certain (add,edit,delete) available for authenicated users
+    Allows user to view the catalog page, certain (add,edit,delete) available
+    for authenicated users
     Returns:
         catalog (html): page with all the categories and latest items
     '''
@@ -349,21 +353,26 @@ def edit_category(category_id):
     '''
     try:
         category = session.query(Category).filter_by(id=category_id).one()
-        print category.name
-        if request.method == 'POST':
-            old_name = category.name
-            category.name = request.form['name']
-            add_to_db(category)
-            construct_flash(
-                old_name + ' category has been changed to ' +
-                category.name, 'success')
-            return redirect(url_for('show_catalog'))
+        if category.user_id == login_session['user_id']:
+            if request.method == 'POST':
+                old_name = category.name
+                category.name = request.form['name']
+                add_to_db(category)
+                construct_flash(
+                    old_name + ' category has been changed to ' +
+                    category.name, 'success')
+                return redirect(url_for('show_catalog'))
+            else:
+                return render_template(
+                    'category_form.html',
+                    category=category,
+                    action_url=url_for(
+                        'edit_category', category_id=category_id)
+                )
         else:
-            return render_template(
-                'category_form.html',
-                category=category,
-                action_url=url_for('edit_category', category_id=category_id)
-            )
+            construct_flash(
+                'You do not have the autherization to edit', 'danger')
+            return redirect(url_for('show_catalog'))
     except:
         construct_flash('There is no such category', 'danger')
         return redirect(url_for('show_catalog'))
@@ -383,15 +392,22 @@ def delete_category(category_id):
     '''
     try:
         category = session.query(Category).filter_by(id=category_id).one()
-        if request.method == 'POST':
-            name = category.name
-            delete_from_db(category)
-            construct_flash(
-                name + ' category has been successfully deleted with its items',
-                'success')
-            return redirect(url_for('show_category'))
+        if category.user_id == login_session['user_id']:
+            if request.method == 'POST':
+                name = category.name
+                delete_from_db(category)
+                construct_flash(
+                    name +
+                    ' category has been successfully deleted with its items',
+                    'success')
+                return redirect(url_for('show_category'))
+            else:
+                return render_template(
+                    'delete_category.html', category=category)
         else:
-            return render_template('delete_category.html', category=category)
+            construct_flash(
+                'You do not have the autherization to delete', 'danger')
+            return redirect(url_for('show_catalog'))
     except:
         flash('There is no such category')
         return redirect(url_for('show_catalog'))
@@ -402,7 +418,8 @@ def show_category_items(category_id):
     '''
     Allows public users to view the items that belong to the selected category
     Returns:
-        category_items (html): template showing the list of categories and the items in
+        category_items (html): template showing the list of categories and the
+        items in
         in the selected category
     '''
     categories = session.query(Category).all()
@@ -478,23 +495,28 @@ def edit_item(item_id):
     '''
     try:
         item = session.query(Item).filter_by(id=item_id).one()
-        if request.method == 'POST':
-            item.title = request.form['title']
-            item.description = request.form['description']
-            item.category_id = request.form['category']
-            add_to_db(item)
-            construct_flash(
-                item.title + ' has been successfully updated',
-                'success')
-            return redirect(url_for('show_catalog'))
+        if item.user_id == login_session['user_id']:
+            if request.method == 'POST':
+                item.title = request.form['title']
+                item.description = request.form['description']
+                item.category_id = request.form['category']
+                add_to_db(item)
+                construct_flash(
+                    item.title + ' has been successfully updated',
+                    'success')
+                return redirect(url_for('show_catalog'))
+            else:
+                categories = session.query(Category).all()
+                return render_template(
+                    'item_form.html',
+                    item=item,
+                    categories=categories,
+                    action_url=url_for('edit_item', item_id=item_id)
+                )
         else:
-            categories = session.query(Category).all()
-            return render_template(
-                'item_form.html',
-                item=item,
-                categories=categories,
-                action_url=url_for('edit_item', item_id=item_id)
-            )
+            construct_flash(
+                'You do not have the autherization to edit', 'danger')
+            return redirect(url_for('show_catalog'))
     except:
         construct_flash('There is no such item', 'danger')
         return redirect(url_for('show_catalog'))
@@ -510,16 +532,21 @@ def delete_item(item_id):
     '''
     try:
         item = session.query(Item).filter_by(id=item_id).one()
-        if request.method == 'POST':
-            title = item.title
-            delete_from_db(item)
-            construct_flash(
-                title + 'has been successfully deleted',
-                'success'
-            )
-            return redirect(url_for('show_catalog'))
+        if item.user_id == login_session['user_id']:
+            if request.method == 'POST':
+                title = item.title
+                delete_from_db(item)
+                construct_flash(
+                    title + 'has been successfully deleted',
+                    'success'
+                )
+                return redirect(url_for('show_catalog'))
+            else:
+                return render_template('delete_item.html', item=item)
         else:
-            return render_template('delete_item.html', item=item)
+            construct_flash(
+                'You do not have the autherization to delete', 'danger')
+            return redirect(url_for('show_catalog'))
     except:
         construct_flash('There is no such item', 'danger')
         return redirect(url_for('show_catalog'))
@@ -545,7 +572,6 @@ def credentials_to_dict(credentials):
             'scopes': credentials.scopes}
 
 
-# FIXME: should add a return??
 def construct_flash(message, flash_type):
     '''
     Creates a flash

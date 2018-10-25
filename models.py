@@ -72,10 +72,12 @@ class User(Base):
 
     def generate_auth_token(self, expiration=600):
         '''
-        Function to create an auth token for the user and mask the user id in it
+        Function to create an auth token for the user and mask the user id in
+        it
 
         Args:
-            expiration (int): number to specify the length of validity of the token
+            expiration (int): number to specify the length of validity of the
+            token
 
         Returns:
             serializer: auth token with the user id
