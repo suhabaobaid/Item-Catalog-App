@@ -35,7 +35,7 @@ SCOPES = ['profile', 'email']
 # Initializations
 # Connect to the database and create a session
 engine = create_engine(
-    'postgresql://catalog:udacity_linux_Fullstack@localhost/catalog', connect_args={'check_same_thread': False})
+    'postgresql://catalog:udacity_linux_Fullstack@localhost/catalog')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
