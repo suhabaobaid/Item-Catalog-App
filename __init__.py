@@ -41,6 +41,7 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 # Create the flask application
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
 
 
 # --------------------------------------
@@ -604,5 +605,4 @@ def delete_from_db(obj):
 
 if __name__ == '__main__':
     app.debug = True
-    app.secret_key = SECRET_KEY
     app.run(host='0.0.0.0', port=5000)
