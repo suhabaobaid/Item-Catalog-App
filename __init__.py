@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 # Database imports
 from models import Base, User, Category, Item
 from sqlalchemy.ext.declarative import declarative_base
@@ -22,20 +20,22 @@ import httplib2
 import requests
 import functools
 
+from catalog.settings import APP_ROOT
+
 
 # Constants
 LATEST_ITEM_LIMIT = 10
 SECRET_KEY = ''.join(random.choice(
     string.ascii_uppercase + string.digits) for x in xrange(32))
 CLIENT_ID = json.loads(
-    open('client_secret.json', 'r').read())['web']['client_id']
-CLIENT_SECRET_FILE = 'client_secret.json'
+    open(APP_ROOT + '/client_secret.json', 'r').read())['web']['client_id']
+CLIENT_SECRET_FILE = APP_ROOT + '/client_secret.json'
 SCOPES = ['profile', 'email']
 
 # Initializations
 # Connect to the database and create a session
 engine = create_engine(
-    'sqlite:///catalog.db', connect_args={'check_same_thread': False})
+    'postgresql://catalog:udacity_linux_Fullstack@localhost/catalog', connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
