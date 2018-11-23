@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # sqlalchemy imports
 from sqlalchemy import Column, create_engine, ForeignKey
 from sqlalchemy import Integer, String, Text
@@ -6,11 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker, backref
 
 # other imports
-from passlib.apps import custom_app_context as pwd_context
 import random
 import string
-from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer)
-from itsdangerous import BadSignature, SignatureExpired
 
 # Initializations
 Base = declarative_base()
@@ -48,65 +44,6 @@ class User(Base):
             'username': self.name,
             'email': self.email
         }
-
-    def hash_password(self, password):
-        '''
-        Function to create the hashed password and assign it to self
-
-        Args:
-            password (string): user entered password
-        '''
-        self.password_hash = pwd_context.encrypt(password)
-
-    def verify_password(self, password):
-        '''
-        Function to verify the given password against the stored hash password
-
-        Args:
-            password (string): user entered password to compare
-
-        Returns:
-            bool: True if password given is correct and False otherwise
-        '''
-        return pwd_context.verify(password, self.password_hash)
-
-    def generate_auth_token(self, expiration=600):
-        '''
-        Function to create an auth token for the user and mask the user id in
-        it
-
-        Args:
-            expiration (int): number to specify the length of validity of the
-            token
-
-        Returns:
-            serializer: auth token with the user id
-        '''
-        s = Serializer(secret_key, expires_in=expiration)
-        return s.dumps({'id': self.id})
-
-    @staticmethod
-    def verify_auth_token(token):
-        '''
-        Function to verify the given auth token
-
-        Args:
-            token (string): auth token
-
-        Returns:
-            int: user id if a valid token
-            None: if an invalid token is given
-        '''
-        s = Serializer(secret_key)
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None
-        except BadSignature:
-            return None
-        user_id = data['id']
-        return user_id
-
 
 class Category(Base):
     '''
@@ -193,5 +130,5 @@ class Item(Base):
         }
 
 
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('postgresql://catalog:udacity_linux_Fullstack@localhost/catalog')
 Base.metadata.create_all(engine)
